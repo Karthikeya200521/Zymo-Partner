@@ -87,6 +87,7 @@ function Step({
 }
 
 export function Signup() {
+  const [termsError, setTermsError] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -304,16 +305,21 @@ export function Signup() {
               setFormData({ ...formData, email: e.target.value })
             }
           />
-          <Input
-            id="phone"
-            label="Phone Number"
-            type="tel"
-            required
-            value={formData.phone}
-            onChange={(e: { target: { value: any } }) =>
-              setFormData({ ...formData, phone: e.target.value })
-            }
-          />
+<Input
+  id="phone"
+  label="Phone Number"
+  type="tel"
+  required
+  value={formData.phone}
+  onChange={(e: { target: { value: any; }; }) => 
+    setFormData({ ...formData, phone: e.target.value })
+  }
+  error={
+    formData.phone && !/^[6-9]\d{9}$/.test(formData.phone)
+      ? "Please enter a valid 10-digit Indian phone number"
+      : undefined
+  }
+/>
           <div className="">
             <label className="block text-sm px-1 font-medium mb-3">
               Cities Available
@@ -422,18 +428,21 @@ export function Signup() {
               })
             }
           />
-          <Input
-            id="ifscCode"
-            label="IFSC Code"
-            required
-            value={formData.ifscCode}
-            onChange={(e: { target: { value: any } }) =>
-              setFormData({
-                ...formData,
-                ifscCode: e.target.value,
-              })
-            }
-          />
+<Input
+  id="ifscCode"
+  label="IFSC Code"
+  required
+  value={formData.ifscCode}
+  onChange={(e: { target: { value: string; }; }) => {
+    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    setFormData({ ...formData, ifscCode: value });
+  }}
+  error={
+    formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)
+      ? "Invalid IFSC format (e.g., ABCD0123456)"
+      : undefined
+  }
+/>
           <Input
             id="upiId"
             label="UPI ID (Optional)"
@@ -699,6 +708,10 @@ export function Signup() {
         }
       }
       if (currentStep === 3) {
+        if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+          setError("Please enter a valid phone number");
+          return;
+        }
         if (!formData.fullName || !formData.email || !formData.phone) {
           setError("Please fill in all required fields");
           return;
@@ -713,8 +726,8 @@ export function Signup() {
         }
       }
       if (currentStep === 4) {
-        if (!formData.bankAccount || !formData.ifscCode) {
-          setError("Please fill in all required fields");
+        if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)) {
+          setError("Invalid IFSC Code format");
           return;
         }
       }

@@ -95,6 +95,16 @@ export function ProfilePage() {
   }, []);
 
   const handleSave = async () => {
+    if (formData.gstNumber && formData.gstNumber.length !== 15) {
+      alert("GST Number must be exactly 15 characters");
+      return;
+    }
+  
+    // Cities validation
+    if (formData.cities.length === 0) {
+      alert("Please select at least one city");
+      return;
+    }
     const updatedData = {
       ...formData,
       unavailableHours: unavailableHours,
@@ -212,9 +222,11 @@ export function ProfilePage() {
             <Input
               label={<span className=" text-lime">GST Number</span>}
               value={formData.gstNumber}
-              onChange={(e: { target: { value: any } }) =>
-                setFormData({ ...formData, gstNumber: e.target.value })
-              }
+              onChange={(e: { target: { value: any } }) => {
+                const value = e.target.value.toUpperCase(); // Convert to uppercase
+                setFormData({ ...formData, gstNumber: value });
+              }}
+              maxLength={15} // Add max length
               className="text-white"
               disabled={!isEditing}
             />
