@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { appDB } from '../lib/firebase';
 import { User , Car, X, Save, Edit, Plus } from 'lucide-react';
 import { Dialog } from '@headlessui/react';
 import { Input } from '../components/Input';
@@ -151,7 +151,8 @@ const AdminPage: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'partnerWebApp'));
+        const querySnapshot = await getDocs(collection(appDB, 'partnerAppVendors'));
+        
         const userList = querySnapshot.docs.map(doc => ({
           id: doc.id,
           username: doc.data().username || 'No Username',
