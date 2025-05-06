@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "zymo-partner",
+    "target": "zymo-partner",
     "public": "dist",
     "ignore": [
       "firebase.json",

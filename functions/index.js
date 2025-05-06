@@ -20,6 +20,9 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 const citiesRoutes = require("./routes/cities");
+const otpRoutes = require("./routes/otp");
+
 app.use("/cities", citiesRoutes);
+app.use("/otp", otpRoutes);
 
 exports.zymoPartner = functions.https.onRequest(app);

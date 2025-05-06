@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { appDB, db } from '../lib/firebase';
 import { User , Car, X, Save, Edit, Plus } from 'lucide-react';
 import { Dialog } from '@headlessui/react';
 import { Input } from '../components/Input';
@@ -132,6 +132,7 @@ const AdminPage: React.FC = () => {
           visibility: newVisibility,
         })
       );
+      console.log('updateCarPromises', updateCarPromises)
   
       await Promise.all(updateCarPromises);
   
@@ -151,7 +152,9 @@ const AdminPage: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'partnerWebApp'));
+        const querySnapshot = await getDocs(collection(appDB, 'partnerWebApp'));
+        console.log(db)
+        console.log("snapshot: ",querySnapshot)
         const userList = querySnapshot.docs.map(doc => ({
           id: doc.id,
           username: doc.data().username || 'No Username',
@@ -171,6 +174,7 @@ const AdminPage: React.FC = () => {
           gstNumber: doc.data().gstNumber || '',
           unavailableHours: doc.data().unavailableHours || { start: '00:00', end: '06:00' }
         }));
+        console.log("userList: ",userList)
         setUsers(userList);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -211,6 +215,7 @@ const AdminPage: React.FC = () => {
       setUserCars([]);
       
       const carsRef = collection(db, 'partnerWebApp', userId, 'uploadedCars');
+      console.log('Fetching cars for user:', userId);
       const snapshot = await getDocs(carsRef);
       const carsData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -341,6 +346,7 @@ const AdminPage: React.FC = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.phone.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  console.log(filteredUsers)
 
   useEffect(() => {
     if (selectedUserId) {

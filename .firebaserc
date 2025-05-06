@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "zymo-prod"
-  }
+  },
+  "targets": {
+    "zymo-prod": {
+      "hosting": {
+        "zymo-partner": [
+          "zymo-partner"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
