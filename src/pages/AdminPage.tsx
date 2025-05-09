@@ -213,15 +213,23 @@ const AdminPage: React.FC = () => {
       setCarsLoading(true);
       setCarsError(null);
       setUserCars([]);
-      
-      const carsRef = collection(db, 'partnerWebApp', userId, 'uploadedCars');
-      console.log('Fetching cars for user:', userId);
+
+      console.log('Fetching cars for user:', userId); // Debugging log
+      const carsRef = collection(appDB , 'partnerWebApp', userId, 'uploadedCars');
       const snapshot = await getDocs(carsRef);
+
+      if (snapshot.empty) {
+        console.log('No cars found for user:', userId); // Debugging log
+      }
+
       const carsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as CarData[];
+
+      console.log('Fetched cars:', carsData); // Debugging log
       setUserCars(carsData);
+      console.log('Updated userCars state:', carsData); // Debugging log
     } catch (error) {
       console.error('Error fetching cars:', error);
       setCarsError('Failed to load cars data');
