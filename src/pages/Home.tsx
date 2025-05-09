@@ -10,7 +10,7 @@ import {
   getDocs,
   updateDoc,
 } from "firebase/firestore";
-import { db, auth } from "../lib/firebase";
+import { appDB, auth } from "../lib/firebase";
 import { Button } from "../components/Button";
 import { MapPinIcon, Plus } from "lucide-react";
 import { DayPicker } from "react-day-picker";
@@ -230,7 +230,7 @@ export function Home() {
       if (user) {
         setUserEmail(user.email);
         try {
-          const userDocRef = doc(db, "users", user.uid);
+          const userDocRef = doc(appDB, "users", user.uid);
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
             setUserProfile(userDoc.data());
@@ -240,7 +240,7 @@ export function Home() {
 
           // Fetch cars only after the user is confirmed
           const carsCollection = collection(
-            db,
+            appDB,
             "partnerWebApp",
             user.uid,
             "uploadedCars"
@@ -270,7 +270,7 @@ export function Home() {
       if (!auth.currentUser) return;
 
       try {
-        const userRef = doc(db, "partnerWebApp", auth.currentUser.uid);
+        const userRef = doc(appDB, "partnerWebApp", auth.currentUser.uid);
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {

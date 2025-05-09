@@ -7,7 +7,7 @@ import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { updateDoc, setDoc } from "firebase/firestore";
 import { doc, getDoc } from "firebase/firestore";
-import { db, auth } from "../lib/firebase"; // Import Firebase Firestore instance
+import { appDB, auth } from "../lib/firebase"; // Import Firebase Firestore instance
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import PickupForm from "../components/PickupForm";
 import "react-day-picker/dist/style.css";
@@ -121,7 +121,7 @@ export function UploadCarPage() {
         }
 
         const carDocRef = doc(
-          db,
+          appDB,
           "partnerWebApp",
           user.uid,
           "uploadedCars",
@@ -132,7 +132,7 @@ export function UploadCarPage() {
         if (carDoc.exists()) {
           const carData = carDoc.data();
           setFormData(carData as typeof formData);
-
+          console.log("Fetched car data:", carData);
           // Set image previews if images exist
           if (carData.images && carData.images.length > 0) {
             setImagePreviews(carData.images);
@@ -156,7 +156,7 @@ export function UploadCarPage() {
         // User is signed in
         try {
           const userId = uid || user.uid;
-          const userDocRef = doc(db, "partnerWebApp", userId);
+          const userDocRef = doc(appDB, "partnerWebApp", userId);
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
             const userData = userDoc.data();
@@ -165,7 +165,9 @@ export function UploadCarPage() {
               vendorBrandName: userData?.brandName || "",
               vendorLogo: userData?.logo || "",
               vendorFullName: userData?.fullName || "",
+             
             }));
+            
           }
           setError(null);
         } catch (err) {
@@ -297,13 +299,13 @@ export function UploadCarPage() {
 
       if (isEditMode && carId) {
         // Update existing car document
-        const carDocRef = doc(db, "partnerWebApp", uid, "uploadedCars", carId);
+        const carDocRef = doc(appDB, "partnerWebApp", uid, "uploadedCars", carId);
         await updateDoc(carDocRef, carData);
         setSuccessMessage("Changes saved successfully!"); // Set success message
       } else {
         // Add new car document
         const carDocRef = doc(
-          db,
+          appDB,
           "partnerWebApp",
           uid,
           "uploadedCars",
@@ -366,7 +368,7 @@ export function UploadCarPage() {
     const fetchUserCities = async () => {
       const user = auth.currentUser;
       if (!user) return;
-      const userDocRef = doc(db, "partnerWebApp", user.uid); // Reference to user's Firestore doc
+      const userDocRef = doc(appDB, "partnerWebApp", user.uid); // Reference to user's Firestore doc
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
