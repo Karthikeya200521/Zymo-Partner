@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { Car, Check } from "lucide-react";
-import { auth, db } from "../lib/firebase";
+import { auth, appDB } from "../lib/firebase";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
 import { AccountType } from "../types/auth";
@@ -763,7 +763,7 @@ export function Signup() {
       const vendorId = `V-${namePart}${timestamp.toString().slice(-6)}`;
 
       console.log("Created", user);
-      const userRef = doc(db, "partnerWebApp", user.uid);
+      const userRef = doc(appDB, "partnerWebApp", user.uid);
       await setDoc(userRef, {
         email: formData.email,
         accountType: formData.accountType,
