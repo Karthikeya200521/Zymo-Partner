@@ -263,7 +263,7 @@ const AdminPage: React.FC = () => {
     if (!editingUser) return;
     
     try {
-      const userRef = doc(db, 'partnerWebApp', editingUser.id);
+      const userRef = doc(appDB, 'partnerWebApp', editingUser.id);
       await updateDoc(userRef, {
         fullName: editingUser.fullName,
         phone: editingUser.phone,
@@ -290,7 +290,63 @@ const AdminPage: React.FC = () => {
   };
 
   const handleEditCar = (car: CarData) => {
-    setEditingCar({...car});
+    console.log('Editing car:', car); // Debugging log
+    setEditingCar({
+      ...car,
+      slabRates: Array.isArray(car.slabRates) ? car.slabRates : [],
+      hourlyRental: {
+        limit: car.hourlyRental?.limit || 'Limit Type',
+        limited: {
+          packages: car.hourlyRental?.limited?.packages || [],
+          extraKmRate: car.hourlyRental?.limited?.extraKmRate || '0',
+          extraHourRate: car.hourlyRental?.limited?.extraHourRate || '0',
+        },
+        unlimited: {
+          fixedHourlyRate: car.hourlyRental?.unlimited?.fixedHourlyRate || '0',
+          extraKmRate: car.hourlyRental?.unlimited?.extraKmRate || '0',
+          extraHourRate: car.hourlyRental?.unlimited?.extraHourRate || '0',
+        },
+      },
+      monthlyRental: {
+        available: car.monthlyRental?.available || false,
+        rate: car.monthlyRental?.rate || '0',
+        limit: car.monthlyRental?.limit || 'Limit Type',
+        limitValueKm: car.monthlyRental?.limitValueKm || '0',
+        limitValueHr: car.monthlyRental?.limitValueHr || '0',
+        packages: car.monthlyRental?.packages || [],
+      },
+      weeklyRental: {
+        available: car.weeklyRental?.available || false,
+        rate: car.weeklyRental?.rate || '0',
+        limit: car.weeklyRental?.limit || 'Limit Type',
+        limitValueKm: car.weeklyRental?.limitValueKm || '0',
+        limitValueHr: car.weeklyRental?.limitValueHr || '0',
+        packages: car.weeklyRental?.packages || [],
+      },
+      deliveryCharges: {
+        enabled: car.deliveryCharges?.enabled || false,
+        Range: car.deliveryCharges?.Range || '',
+        charges: {
+          "0-10": car.deliveryCharges?.charges?.["0-10"] || '0',
+          "10-25": car.deliveryCharges?.charges?.["10-25"] || '0',
+          "25-50": car.deliveryCharges?.charges?.["25-50"] || '0',
+        },
+      },
+      unavailableHours: {
+        start: car.unavailableHours?.start || '00:00',
+        end: car.unavailableHours?.end || '06:00',
+      },
+      images: car.images || [],
+      cities: car.cities || [],
+      pickupLocation: car.pickupLocation || 'Not specified',
+      yearOfRegistration: car.yearOfRegistration || new Date().getFullYear(),
+      minBookingDuration: car.minBookingDuration || 1,
+      unit: car.unit || 'hours',
+      fuelType: car.fuelType || 'Unknown',
+      transmissionType: car.transmissionType || 'Unknown',
+      noOfSeats: car.noOfSeats || 4,
+      securityDeposit: car.securityDeposit || '0',
+    });
     setIsEditingCar(true);
   };
 
@@ -298,7 +354,7 @@ const AdminPage: React.FC = () => {
     if (!editingCar || !selectedUserId) return;
     
     try {
-      const carRef = doc(db, 'partnerWebApp', selectedUserId, 'uploadedCars', editingCar.id);
+      const carRef = doc(appDB, 'partnerWebApp', selectedUserId, 'uploadedCars', editingCar.id);
       await updateDoc(carRef, {
         name: editingCar.name,
         securityDeposit: editingCar.securityDeposit,
@@ -1093,7 +1149,7 @@ const AdminPage: React.FC = () => {
                   />
                   <Input
                     label="Year of Registration"
-                    value={editingCar.yearOfRegistration.toString()}
+                    value={editingCar?.yearOfRegistration?.toString() || ''}
                     onChange={(e: { target: { value: string; }; }) => setEditingCar({...editingCar, yearOfRegistration: parseInt(e.target.value) || 0})}
                   />
                   <Input
@@ -1190,21 +1246,21 @@ const AdminPage: React.FC = () => {
                 <div className="mt-4">
                   <h3 className="text-lg font-medium text-lime mb-2">Slab Rates</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {editingCar.slabRates.map((slab, index) => (
-                      <div key={index} className="bg-lightgray/10 p-3 rounded-lg">
-                        <div className="font-medium text-lime mb-1">{slab.duration} hours</div>
-                        <Input
-                          value={slab.rate}
-                          onChange={(e: { target: { value: string; }; }) => {
-                            const newSlabs = [...editingCar.slabRates];
-                            newSlabs[index].rate = e.target.value;
-                            setEditingCar({...editingCar, slabRates: newSlabs});
-                          }}
-                          prefix="₹"
-                        />
-                      </div>
-                    ))}
-                  </div>
+            {(editingCar?.slabRates || []).map((slab, index) => (
+    <div key={index} className="bg-lightgray/10 p-3 rounded-lg">
+      <div className="font-medium text-lime mb-1">{slab.duration} hours</div>
+      <Input
+        value={slab.rate}
+        onChange={(e: { target: { value: string } }) => {
+          const newSlabs = [...(editingCar.slabRates || [])];
+          newSlabs[index].rate = e.target.value;
+          setEditingCar({ ...editingCar, slabRates: newSlabs });
+        }}
+        prefix="₹"
+      />
+    </div>
+  ))}
+</div>
                 </div>
 
                 <div className="pt-4 border-t border-lime/20">
