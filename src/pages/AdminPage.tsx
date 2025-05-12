@@ -113,7 +113,7 @@ const AdminPage: React.FC = () => {
 
   const blockUser = async (userId: string) => {
     try {
-      const userRef = doc(db, 'partnerWebApp', userId);
+      const userRef = doc(appDB, 'partnerWebApp', userId);
       const user = users.find((u) => u.id === userId);
   
       if (!user) {
@@ -124,11 +124,11 @@ const AdminPage: React.FC = () => {
       const newVisibility = user.visibility === 0 ? 1 : 0;
       await updateDoc(userRef, { visibility: newVisibility });
   
-      const carsCollectionRef = collection(db, 'partnerWebApp', userId, 'uploadedCars');
+      const carsCollectionRef = collection(appDB, 'partnerWebApp', userId, 'uploadedCars');
       const carsSnapshot = await getDocs(carsCollectionRef);
   
       const updateCarPromises = carsSnapshot.docs.map((carDoc) =>
-        updateDoc(doc(db, 'partnerWebApp', userId, 'uploadedCars', carDoc.id), {
+        updateDoc(doc(appDB, 'partnerWebApp', userId, 'uploadedCars', carDoc.id), {
           visibility: newVisibility,
         })
       );
@@ -188,13 +188,13 @@ const AdminPage: React.FC = () => {
 
   const deleteUserAccount = async (userId: string) => {
     try {
-      const userRef = doc(db, 'partnerWebApp', userId);
+      const userRef = doc(appDB, 'partnerWebApp', userId);
       const carsCollectionRef = collection(db, 'partnerWebApp', userId, 'uploadedCars');
       const carsSnapshot = await getDocs(carsCollectionRef);
       
       // Fix: Add type annotation and proper Promise.all handling
       const deleteCarPromises: Promise<void>[] = carsSnapshot.docs.map((carDoc) => 
-        deleteDoc(doc(db, 'partnerWebApp', userId, 'uploadedCars', carDoc.id))
+        deleteDoc(doc(appDB, 'partnerWebApp', userId, 'uploadedCars', carDoc.id))
       );
       await Promise.all(deleteCarPromises);
       
@@ -244,7 +244,7 @@ const AdminPage: React.FC = () => {
 
   const toggleApproval = async (userId: string, isApproved: boolean) => {
     try {
-      const userRef = doc(db, 'partnerWebApp', userId);
+      const userRef = doc(appDB, 'partnerWebApp', userId);
       await updateDoc(userRef, { isApproved: !isApproved });
       setUsers(prev => prev.map(user => 
         user.id === userId ? { ...user, isApproved: !isApproved } : user
