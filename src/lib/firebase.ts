@@ -38,3 +38,10 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Add auth state listener for debugging
+auth.onAuthStateChanged((user) => {
+  console.log('Auth state changed:', user ? `User: ${user.uid}` : 'No user');
+});
+
+console.log("Firebase initialization complete");

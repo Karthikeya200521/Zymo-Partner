@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { Car } from 'lucide-react';
-import { auth } from '../lib/firebase';
+import { appDB, auth } from '../lib/firebase';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Eye, EyeOff } from 'lucide-react';
@@ -29,21 +30,44 @@ export function Login() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-        // Check if the input fields match the admin credentials
-        if (formData.email === ADMIN_EMAIL && formData.password === ADMIN_PASSWORD) {
-          navigate('/admin');
-          setIsLoading(false);
-          return;
-        }
-        try {
-          await signInWithEmailAndPassword(auth, formData.email, formData.password);
-          navigate('/home');
-        } catch (err) {
-          setError('Invalid email or password');
-        } finally {
-          setIsLoading(false);
-        }
-      };
+    
+    console.log('Attempting login with email:', formData.email);
+    
+    // Check if the input fields match the admin credentials
+    if (formData.email === ADMIN_EMAIL && formData.password === ADMIN_PASSWORD) {
+      console.log('Admin login successful');
+      navigate('/admin');
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      console.log('Attempting Firebase authentication');
+      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      console.log('Authentication successful, user:', userCredential.user.uid);
+      
+      // Check if user data exists in Firestore before navigating
+      const userDocRef = doc(appDB, 'partnerWebApp', userCredential.user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      
+      if (userDocSnap.exists()) {
+        console.log('User document exists:', userDocSnap.data());
+      } else {
+        console.warn('User authenticated but no document exists in Firestore');
+      }
+      
+      navigate('/home');
+    } catch (err) {
+      console.error('Authentication error:', err);
+      if (err instanceof Error) {
+        setError(`Login error: ${err.message}`);
+      } else {
+        setError('Invalid email or password');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
       return (
         <div className="min-h-screen bg-darkgray font-montserrat flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">

@@ -1,6 +1,13 @@
 import { useEffect } from "react";
 
-export function Input({ label, error, className = "", prefix, ...props }: any) {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: React.ReactNode;
+  error?: string;
+  className?: string;
+  prefix?: string;
+}
+
+export function Input({ label, error, className = "", prefix, ...props }: InputProps) {
   useEffect(() => {
     const preventScroll = (event: WheelEvent) => {
       if (document.activeElement && (document.activeElement as HTMLInputElement).type === "number") {

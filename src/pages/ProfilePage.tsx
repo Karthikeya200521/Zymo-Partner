@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { User, Save, Plus, Trash, Clock } from "lucide-react";
-import { RootState, AppDispatch } from "../store/store";
-import { fetchProfile, updateProfile } from "../store/slices/profileSlice";
+import { appDB, auth } from "../lib/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Input } from "../components/Input";
 
 interface UnavailableHours {
@@ -10,11 +9,54 @@ interface UnavailableHours {
   end: string;
 }
 
+interface ProfileData {
+  fullName: string;
+  email: string;
+  brandName: string;
+  phone: string;
+  gstNumber: string;
+  bankAccountName: string;
+  bankAccount: string;
+  ifscCode: string;
+  cities: string[];
+  logo: string;
+  unavailableHours?: UnavailableHours;
+  accountType: string;
+  vendorId: string;
+  isApproved: boolean;
+  carsRange: string;
+  upiId: string | null;
+  visibility: number;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
 export function ProfilePage() {
-  const dispatch: AppDispatch = useDispatch();
-  const profile = useSelector((state: RootState) => state.profile);
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(profile);
+  const [profile, setProfile] = useState<ProfileData>({
+    fullName: '',
+    email: '',
+    brandName: '',
+    phone: '',
+    gstNumber: '',
+    bankAccountName: '',
+    bankAccount: '',
+    ifscCode: '',
+    cities: [],
+    logo: '',
+    unavailableHours: {
+      start: "00:00",
+      end: "06:00"
+    },
+    accountType: '',
+    vendorId: '',
+    isApproved: false,
+    carsRange: '',
+    upiId: null,
+    visibility: 1
+  });
+  const [formData, setFormData] = useState<ProfileData>(profile);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [cities, setCities] = useState([]);
@@ -25,14 +67,14 @@ export function ProfilePage() {
   });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     async function fetchCities(query = "New") {
       try {
-        // const functionsUrl = 'https://us-central1-zymo-prod.cloudfunctions.net/zymoPartner/';
         const functionsUrl =
-          "http://127.0.0.1:5001/zymo-prod/us-central1/zymoPartner/";
+          "https://us-central1-zymo-prod.cloudfunctions.net/zymoPartner/";
+        // const functionsUrl =
+        // "http://127.0.0.1:5001/zymo-prod/us-central1/zymoPartner/";
         console.log(query);
         const response = await fetch(`${functionsUrl}cities/indian-cities`, {
           method: "POST",
@@ -57,12 +99,73 @@ export function ProfilePage() {
     }
   }, [searchTerm]);
 
+
+
+  // Monitor authentication state and fetch profile when authenticated
   useEffect(() => {
-    dispatch(fetchProfile());
-  }, [dispatch]);
+    const fetchUserProfile = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.log('No user logged in');
+          setLoading(false);
+          return;
+        }
+        console.log('Current user ID:', user.uid);
+        
+        const docRef = doc(appDB, 'partnerWebApp', user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          console.log('Profile data:', data);
+          
+          // Ensure all required fields are present with defaults
+          const profileData: ProfileData = {
+            fullName: data.fullName || '',
+            email: data.email || '',
+            brandName: data.brandName || '',
+            phone: data.phone || '',
+            gstNumber: data.gstNumber || '',
+            bankAccountName: data.bankAccountName || '',
+            bankAccount: data.bankAccount || '',
+            ifscCode: data.ifscCode || '',
+            cities: data.cities || [],
+            logo: data.logo || '',
+            unavailableHours: data.unavailableHours || {
+              start: "00:00",
+              end: "06:00"
+            },
+            accountType: data.accountType || '',
+            vendorId: data.vendorId || '',
+            isApproved: data.isApproved || false,
+            carsRange: data.carsRange || '',
+            upiId: data.upiId || null,
+            visibility: data.visibility || 1,
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt
+          };
+          
+          setProfile(profileData);
+          setFormData(profileData);
+          if (profileData.unavailableHours) {
+            setUnavailableHours(profileData.unavailableHours);
+          }
+        } else {
+          console.log('No profile found for user');
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserProfile();
+
+  }, []);
 
   useEffect(() => {
-    if (profile && !profile.loading) {
+    if (profile && !loading) {
       setFormData(profile);
       // Initialize unavailable hours from profile or use defaults
       setUnavailableHours(
@@ -86,9 +189,7 @@ export function ProfilePage() {
       }
     };
 
-    setTimeout(() => {
-      setShowForm(true);
-    }, 200);
+    // Removed unused setTimeout for setShowForm
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -99,18 +200,35 @@ export function ProfilePage() {
       alert("GST Number must be exactly 15 characters");
       return;
     }
-  
+
     // Cities validation
     if (formData.cities.length === 0) {
       alert("Please select at least one city");
       return;
     }
-    const updatedData = {
-      ...formData,
-      unavailableHours: unavailableHours,
-    };
-    await dispatch(updateProfile(updatedData));
-    setIsEditing(false);
+
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        console.log('No user logged in');
+        return;
+      }
+      console.log('Saving profile for user:', user.uid);
+
+      const docRef = doc(appDB, 'partnerWebApp', user.uid);
+      const updatedData = {
+        ...formData,
+        unavailableHours: unavailableHours,
+        updatedAt: new Date()
+      };
+
+      await setDoc(docRef, updatedData, { merge: true });
+      setProfile(updatedData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile changes');
+    }
   };
 
   const handleUnavailableHoursChange = (
@@ -141,14 +259,14 @@ export function ProfilePage() {
   const deleteCity = async (city: string) => {
     const updatedCities = formData.cities.filter((c) => c !== city);
     setFormData({ ...formData, cities: updatedCities });
-    await dispatch(updateProfile({ ...formData, cities: updatedCities }));
+    // await dispatch(updateProfile({ ...formData, cities: updatedCities }));
   };
 
   const filteredCities = cities.filter((city: string) =>
     city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (profile.loading) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime"></div>
@@ -182,47 +300,47 @@ export function ProfilePage() {
           {/* Profile Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label={<span className="   text-lime">Full name</span>}
+              label={<span className="text-lime">Full name</span>}
               value={formData.fullName}
-              onChange={(e: { target: { value: any } }) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, fullName: e.target.value })
               }
               className="text-white"
               disabled={!isEditing}
             />
             <Input
-              label={<span className=" text-lime">Email</span>}
+              label={<span className="text-lime">Email</span>}
               type="email"
               value={formData.email}
-              onChange={(e: { target: { value: any } }) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, email: e.target.value })
               }
               className="text-white"
               disabled={!isEditing}
             />
             <Input
-              label={<span className="  text-lime">Brand Name</span>}
+              label={<span className="text-lime">Brand Name</span>}
               value={formData.brandName}
-              onChange={(e: { target: { value: any } }) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, brandName: e.target.value })
               }
               className="text-white"
               disabled={!isEditing}
             />
             <Input
-              label={<span className=" text-lime">Contact Number</span>}
+              label={<span className="text-lime">Contact Number</span>}
               type="tel"
               value={formData.phone}
-              onChange={(e: { target: { value: any } }) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, phone: e.target.value })
               }
               className="text-white"
               disabled={!isEditing}
             />
             <Input
-              label={<span className=" text-lime">GST Number</span>}
+              label={<span className="text-lime">GST Number</span>}
               value={formData.gstNumber}
-              onChange={(e: { target: { value: any } }) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const value = e.target.value.toUpperCase(); // Convert to uppercase
                 setFormData({ ...formData, gstNumber: value });
               }}
@@ -231,27 +349,27 @@ export function ProfilePage() {
               disabled={!isEditing}
             />
             <Input
-              label={<span className=" text-lime">Bank Account Name</span>}
+              label={<span className="text-lime">Bank Account Name</span>}
               value={formData.bankAccountName}
-              onChange={(e: { target: { value: any } }) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, bankAccountName: e.target.value })
               }
               className="text-white"
               disabled={!isEditing}
             />
             <Input
-              label={<span className=" text-lime">Bank Account Number</span>}
+              label={<span className="text-lime">Bank Account Number</span>}
               value={formData.bankAccount}
-              onChange={(e: { target: { value: any } }) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, bankAccount: e.target.value })
               }
               className="text-white"
               disabled={!isEditing}
             />
             <Input
-              label={<span className="  text-lime">IFSC Code</span>}
+              label={<span className="text-lime">IFSC Code</span>}
               value={formData.ifscCode}
-              onChange={(e: { target: { value: any } }) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, ifscCode: e.target.value })
               }
               className="text-white"

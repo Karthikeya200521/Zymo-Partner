@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, Image as ImageIcon } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db, storage } from '../lib/firebase';
+import { appDB, auth, storage } from '../lib/firebase';
 
 export function UploadLogoPage() {
   const [logo, setLogo] = useState<string | null>(null);
@@ -16,7 +16,7 @@ export function UploadLogoPage() {
       if (!auth.currentUser) return;
 
       try {
-        const userRef = doc(db, 'partnerWebApp', auth.currentUser.uid);
+        const userRef = doc(appDB, 'partnerWebApp', auth.currentUser.uid);
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
@@ -43,7 +43,7 @@ export function UploadLogoPage() {
     setError(null);
 
     try {
-      const userRef = doc(db, 'partnerWebApp', auth.currentUser.uid);
+      const userRef = doc(appDB, 'partnerWebApp', auth.currentUser.uid);
       const userDoc = await getDoc(userRef);
 
       if (!userDoc.exists()) {
