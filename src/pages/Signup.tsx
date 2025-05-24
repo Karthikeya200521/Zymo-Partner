@@ -10,6 +10,7 @@ import { AccountType } from "../types/auth";
 import { fetchProfile } from "../store/slices/profileSlice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../store/store";
+import axios from "axios";
 
 const CARS_RANGES = ["0-5", "5-10", "10-20", "20-50", "50-100", "100+"];
 
@@ -21,6 +22,22 @@ interface StepProps {
   totalSteps: number;
   children?: React.ReactNode;
 }
+async function sendSignupEmailNotification(email: string, name: string, phone: string) {
+  try {
+    const response = await fetch('http://127.0.0.1:5001/zymo-prod/us-central1/zymoPartner/email/signup-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name, phone }),
+    });
+    const data = await response.json();
+    if (!data.success) {
+      console.error("Email notification error:", data.error);
+    }
+  } catch (error) {
+    console.error("Failed to send signup email notification:", error);
+  }
+}
+
 
 function Step({
   isActive,
@@ -194,6 +211,22 @@ export function Signup() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError("");
+
+  try {
+    // Create user in Firebase
+    await createUserWithEmailAndPassword(auth, email, password);
+
+    // Send email notification after signup success
+    await sendSignupEmailNotification(email, name, phone);
+
+    navigate("/home");
+  } catch (err: any) {
+    setError(err.message);
+  }
+};
 
   const steps = [
     {
