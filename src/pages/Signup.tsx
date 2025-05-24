@@ -214,22 +214,8 @@ export function Signup() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
 
-    try {
-      // Create user in Firebase
-      await createUserWithEmailAndPassword(auth, email, password);
 
-      // Send email notification after signup success
-      await sendSignupEmailNotification(email, name, phone);
-
-      navigate("/home");
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
 
   const steps = [
     {
