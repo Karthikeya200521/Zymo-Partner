@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const sendSignupNotification = require("../utils/mailer"); // your mailer util
+const { sendSignupNotification } = require("../utils/mailer");
 
 // POST /email/signup-notification
 router.post("/signup-notification", async (req, res) => {

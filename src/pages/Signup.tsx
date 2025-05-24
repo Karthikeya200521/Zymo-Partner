@@ -13,7 +13,7 @@ import { AppDispatch } from "../store/store";
 import axios from "axios";
 
 const CARS_RANGES = ["0-5", "5-10", "10-20", "20-50", "50-100", "100+"];
-
+const API_URL = import.meta.env.VITE_APP_API_URL;
 interface StepProps {
   isActive: boolean;
   isCompleted: boolean;
@@ -22,11 +22,15 @@ interface StepProps {
   totalSteps: number;
   children?: React.ReactNode;
 }
-async function sendSignupEmailNotification(email: string, name: string, phone: string) {
+async function sendSignupEmailNotification(
+  email: string,
+  name: string,
+  phone: string
+) {
   try {
-    const response = await fetch('http://127.0.0.1:5001/zymo-prod/us-central1/zymoPartner/email/signup-notification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch(`${API_URL}/email/signup-notification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, name, phone }),
     });
     const data = await response.json();
@@ -37,7 +41,6 @@ async function sendSignupEmailNotification(email: string, name: string, phone: s
     console.error("Failed to send signup email notification:", error);
   }
 }
-
 
 function Step({
   isActive,
@@ -212,21 +215,21 @@ export function Signup() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   const handleSignup = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
 
-  try {
-    // Create user in Firebase
-    await createUserWithEmailAndPassword(auth, email, password);
+    try {
+      // Create user in Firebase
+      await createUserWithEmailAndPassword(auth, email, password);
 
-    // Send email notification after signup success
-    await sendSignupEmailNotification(email, name, phone);
+      // Send email notification after signup success
+      await sendSignupEmailNotification(email, name, phone);
 
-    navigate("/home");
-  } catch (err: any) {
-    setError(err.message);
-  }
-};
+      navigate("/home");
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
 
   const steps = [
     {
@@ -338,21 +341,21 @@ export function Signup() {
               setFormData({ ...formData, email: e.target.value })
             }
           />
-<Input
-  id="phone"
-  label="Phone Number"
-  type="tel"
-  required
-  value={formData.phone}
-  onChange={(e: { target: { value: any; }; }) => 
-    setFormData({ ...formData, phone: e.target.value })
-  }
-  error={
-    formData.phone && !/^[6-9]\d{9}$/.test(formData.phone)
-      ? "Please enter a valid 10-digit Indian phone number"
-      : undefined
-  }
-/>
+          <Input
+            id="phone"
+            label="Phone Number"
+            type="tel"
+            required
+            value={formData.phone}
+            onChange={(e: { target: { value: any } }) =>
+              setFormData({ ...formData, phone: e.target.value })
+            }
+            error={
+              formData.phone && !/^[6-9]\d{9}$/.test(formData.phone)
+                ? "Please enter a valid 10-digit Indian phone number"
+                : undefined
+            }
+          />
           <div className="">
             <label className="block text-sm px-1 font-medium mb-3">
               Cities Available
@@ -461,21 +464,24 @@ export function Signup() {
               })
             }
           />
-<Input
-  id="ifscCode"
-  label="IFSC Code"
-  required
-  value={formData.ifscCode}
-  onChange={(e: { target: { value: string; }; }) => {
-    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    setFormData({ ...formData, ifscCode: value });
-  }}
-  error={
-    formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)
-      ? "Invalid IFSC format (e.g., ABCD0123456)"
-      : undefined
-  }
-/>
+          <Input
+            id="ifscCode"
+            label="IFSC Code"
+            required
+            value={formData.ifscCode}
+            onChange={(e: { target: { value: string } }) => {
+              const value = e.target.value
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, "");
+              setFormData({ ...formData, ifscCode: value });
+            }}
+            error={
+              formData.ifscCode &&
+              !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)
+                ? "Invalid IFSC format (e.g., ABCD0123456)"
+                : undefined
+            }
+          />
           <Input
             id="upiId"
             label="UPI ID (Optional)"

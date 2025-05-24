@@ -1,7 +1,9 @@
-const { onRequest } = require("firebase-functions/v2/https");
+// Load environment variables from .env file
+require('dotenv').config();
+
+const functions = require("firebase-functions/v2");
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 const admin = require("firebase-admin");
 admin.initializeApp();
 
@@ -9,7 +11,6 @@ const app = express();
 
 const emailRoutes = require("./routes/email");
 const citiesRoutes = require("./routes/cities");
-const otpRoutes = require("./routes/otp");
 
 
 app.use(cors({ origin: true }));
@@ -29,8 +30,7 @@ app.use(express.json());
 
 // Register routes
 app.use("/cities", citiesRoutes);
-app.use("/otp", otpRoutes);
 app.use("/email", emailRoutes);
 
 // Export the function with v2 syntax
-exports.zymoPartner = onRequest(app);
+exports.zymoPartner = functions.https.onRequest(app);
