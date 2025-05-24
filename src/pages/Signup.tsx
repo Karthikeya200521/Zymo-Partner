@@ -822,6 +822,8 @@ export function Signup() {
         dispatch(fetchProfile());
       }, 1000); // Small delay to allow Firestore update
 
+      await sendSignupEmailNotification(formData.email, formData.fullName, formData.phone);
+
       navigate("/home");
     } catch (err) {
       setError("Failed to create account. Please try again.");
