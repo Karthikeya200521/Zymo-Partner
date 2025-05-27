@@ -156,13 +156,12 @@ export function Signup() {
       // Default query to get initial results
       try {
         const functionsUrl =
-          "https://us-central1-zymo-prod.cloudfunctions.net/zymoPartner/";
-        const response = await fetch(`${functionsUrl}cities/indian-cities`, {
+          " https://zymopartner-cqkjtyggsq-uc.a.run.app/";
+        const response = await fetch(`${functionsUrl}cities/indian-cities?query=${query}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ query }),
         });
         const data = await response.json();
         const cityNames = data.cities.map((city: string) =>
@@ -215,7 +214,7 @@ export function Signup() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
+  
 
   const steps = [
     {

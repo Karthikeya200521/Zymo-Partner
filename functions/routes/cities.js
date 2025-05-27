@@ -1,12 +1,13 @@
 const express = require("express");
 const axios = require("axios");
+const { defineSecret } = require("firebase-functions/params");
 
 const router = express.Router();
 
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
-
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY ||  defineSecret("GOOGLE_API_KEY").value();
 router.post("/indian-cities", async (req, res) => {
-  const query = req.query.query || "New"; // Default to "New" if empty
+  console.log("GOOGLE_API_KEY:", GOOGLE_API_KEY);
+  const query = req.query.query; // Default to "New" if empty
   const apiUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${query}&types=(cities)&components=country:IN&key=${GOOGLE_API_KEY}`;
 
   try {
