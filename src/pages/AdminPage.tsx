@@ -573,6 +573,7 @@ const AdminPage: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6">
+          
               {carsLoading ? (
                 <div className="flex justify-center items-center h-32">
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lime"></div>
@@ -589,6 +590,7 @@ const AdminPage: React.FC = () => {
                 <div className="space-y-6">
                   {userCars.map((car) => {
                     const safeCar = getSafeCarData(car);
+                    console.log("Rendering car:", safeCar);
                     return (
                       <div
                         key={safeCar.id}

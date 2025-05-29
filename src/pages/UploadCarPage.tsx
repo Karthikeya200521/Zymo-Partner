@@ -36,7 +36,7 @@ export function UploadCarPage() {
     carName: "", //car name
     vendorBrandName: "",
     vendorLogo: "",
-    vendorFullName:"",
+    vendorFullName: "",
     cities: [] as string[], //cities in which the car is available
     pickupLocations: {} as { [key: string]: string }, //contains cities and their respective pickup location in pairs
     securityDeposit: "",
@@ -165,9 +165,7 @@ export function UploadCarPage() {
               vendorBrandName: userData?.brandName || "",
               vendorLogo: userData?.logo || "",
               vendorFullName: userData?.fullName || "",
-             
             }));
-            
           }
           setError(null);
         } catch (err) {
@@ -299,7 +297,13 @@ export function UploadCarPage() {
 
       if (isEditMode && carId) {
         // Update existing car document
-        const carDocRef = doc(appDB, "partnerWebApp", uid, "uploadedCars", carId);
+        const carDocRef = doc(
+          appDB,
+          "partnerWebApp",
+          uid,
+          "uploadedCars",
+          carId
+        );
         await updateDoc(carDocRef, carData);
         setSuccessMessage("Changes saved successfully!"); // Set success message
       } else {
@@ -374,6 +378,12 @@ export function UploadCarPage() {
       if (userDoc.exists()) {
         setUserCities(userDoc.data().cities || []);
       }
+
+      // api call to fetch cities
+
+      // json from data
+
+      // setUsetCities( // pass that data here)
     };
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -553,10 +563,7 @@ export function UploadCarPage() {
                 {/* Display Selected Cities with Pickup Locations */}
                 <div className="mt-4 space-y-4">
                   {formData.cities.map((city) => (
-                    <div
-                      key={city}
-                      className=" bg-black/20 p-3 rounded-2xl"
-                    >
+                    <div key={city} className=" bg-black/20 p-3 rounded-2xl">
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-medium   text-white">{city}</span>
                         <button
