@@ -379,11 +379,29 @@ export function UploadCarPage() {
         setUserCities(userDoc.data().cities || []);
       }
 
-      // api call to fetch cities
+      try {
+        const functionsUrl = "https://zymopartner-cqkjtyggsq-uc.a.run.app/";
 
-      // json from data
+        const response = await fetch(
+          `${functionsUrl}cities/indian-cities?query=${searchTerm}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        //json from data
+        const data = await response.json();
 
-      // setUsetCities( // pass that data here)
+        const cityNames = data.cities.map((city: string) =>
+          city.split(",")[0].trim()
+        );
+        
+        setUserCities(cityNames);
+      } catch (error) {
+        console.error("Error fetching cities from API:", error);
+      }
     };
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -398,13 +416,10 @@ export function UploadCarPage() {
     };
 
     fetchUserCities();
-    setTimeout(() => {
-      setShowForm(true);
-    }, 200); // Delay of 200ms before showing the form
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [searchTerm]);
 
   return (
     <div className="bg-lime rounded-2xl   bg-transparent">
