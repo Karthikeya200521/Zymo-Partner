@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
@@ -374,6 +375,28 @@ export function UploadCarPage() {
       if (userDoc.exists()) {
         setUserCities(userDoc.data().cities || []);
       }
+      
+      //api call to fetch  cities
+      try {
+      const functionsUrl = "https://zymopartner-cqkjtyggsq-uc.a.run.app/";
+      const query = ""; // Add appropriate query here
+      const response = await fetch(`${functionsUrl}cities/indian-cities?query=${query}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      //json from data
+        const data = await response.json();
+        console.log("Fetched cities:", data);
+      const cityNames = data.cities.map((city: string) =>
+        city.split(",")[0].trim()
+      );
+      //setusercities(//pass json data here);
+        setUserCities(cityNames);
+        } catch (error) {
+        console.error("Error fetching cities from API:", error);
+        }
     };
 
     const handleClickOutside = (event: MouseEvent) => {
